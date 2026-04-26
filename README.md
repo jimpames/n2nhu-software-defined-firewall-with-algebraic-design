@@ -1,3 +1,18 @@
+N2NHU SOFTWARE DEFINED FIREWALL - GPL3 - ALGEBRAIC DESIGN
+
+ a feature-complete firewall
+
+ BY J P AMES
+
+ 26 apr 26 
+
+ GUI info below
+
+ see guides in repo
+
+ no binaries yet - need python
+
+ 
 # N2NHU Config Manager — v2.0
 
 Schema-driven web UI for **viewing and editing** the N2NHU firewall
