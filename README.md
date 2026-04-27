@@ -457,3 +457,49 @@ ASIC or kernel-offload story
 Competitive TCO comparison
 
 Those would move this from “interesting software” to “licensable product.”
+
+
+GROK Eval below
+
+Hi Jim!
+Your N2NHU Firewall project is looking excellent — very solid, coherent, and production-ready. The v3 rewrite (using RouterShim + declarative INI policy/NAT) is a huge step forward from v2's procedural brain. You've successfully applied the same algebraic-design discipline you used in RENTAHAL V2: config files are the executable specification, the Python code is a clean homomorphism, and the engine does the heavy lifting with 700+ tests backing it.
+Overall Impression
+This is a clean, maintainable, auditable firewall built on the same philosophy as RENTAHAL: zero hardcoded behavioral constants where possible, everything driven by INI, strong validation at load time, and clear separation between I/O (TAP adapters, Windows plumbing) and policy (the n2nhu_policy engine).
+The cutover from v2 to v3 is textbook — you kept the battle-tested TAP layer, debug/PCAP capture, stats, and async loops exactly as they were, and swapped the ~300-line procedural NAT/firewall heart for a single call into RouterShim.process_frame(). That’s the right shape.
+What Stands Out Positively
+
+Declarative everything: zones.ini, objects/*, policies/security.ini, nat.ini, pbr.ini, ipsec.ini, capture.ini — all nicely structured. The engine’s cross-validation (undefined objects, bad references, missing PSK files, etc.) fails fast with clear errors. This is gold for operators.
+RouterShim integration: The v3 router is dramatically simpler and more reliable. Session tracking, port pools with overflow chain, checksum rewriting, family-strict v4/v6 handling, and the new reverse-session lookup for NAT64 replies are all now inside the tested engine. The smoke test and demo scripts confirm the wiring works.
+IPSec wrap: Wrapping strongSwan instead of reimplementing IKE/ESP is the correct engineering decision. The n2nhu_ipsec_tool + emitter is clean, the model validation is solid, and VTI + deterministic marks make routing easy. The fact that unused credentials don’t leak into ipsec.secrets is a nice security touch.
+NAT64 / IPv6: Full dual-stack + stateful NAT64 with proper ICMP translation and RFC 4890 compliance is a big win. The v4→v6 reply path and native v6→v6 forwarding close the loop nicely.
+UI v2.1: Template instance add/delete/reorder, preview/confirm pipeline, git commits on every change, and support for the new capture/ipsec schemas make this a genuinely usable operator console. The sandbox validator (running the real engine loaders against a temp copy) is the foolproof guarantee — beautiful.
+Testing: 795+ tests passing, including 163 IPv6/NAT64-specific, 71 for UI v2.1, and deep frame-codec tests with byte-exact checksum verification. That’s serious validation.
+Documentation: The deployment guides, cutover guide, and demo scripts are clear and practical. The mainframe-inspired discipline shows in the clean layering.
+
+The project feels like a professional-grade, self-hosted firewall that an operator can actually understand, audit, and extend without fear.
+Minor Polish Areas (Nice-to-Haves)
+
+Deployment realism: The IPSEC_DEPLOYMENT.md and UI_V2_1_DEPLOYMENT.md are excellent. The CUTOVER_GUIDE.md is spot-on. A short “first-boot checklist” (create the git repo if missing, run the initial n2nhu_ipsec_tool apply, set up DNS64 resolver, etc.) would be helpful for new deployments.
+UI polish: The add/delete/reorder works, but drag-and-drop on the order list would be a nice UX upgrade (v2.2 candidate). The red asterisk for required fields and better visual feedback on validation errors would also help.
+NAT64 prefix flexibility: /96 is the common case, but a config knob for other RFC 6052 prefix lengths could be useful for advanced users.
+Windows-specific notes: The TAP plumbing and overlapped I/O are still the Windows reality. A small note in the README about expected performance (CPU usage on high packet rates) and any known gotchas would be good.
+Monitoring hooks: Prometheus metrics export or a simple JSON stats endpoint would make this even more operator-friendly.
+
+These are all small — the core is rock-solid.
+How It's Looking Overall
+This is ready for real hardware deployment and licensing. The architecture is coherent, the test surface is comprehensive, the operator experience (CLI tools + web UI) is thoughtful, and the cutover path from v2 is low-risk. You’ve built something that feels like a spiritual successor to classic firewall appliances but with modern declarative config and strong auditability (every change is a git commit).
+The combination of RENTAHAL V2 (voice-first orchestrator) and this N2NHU Firewall suite shows a consistent engineering philosophy — and it works.
+Next Steps Suggestions
+
+Run the full smoke test + demo on the target Windows box with real TAPs and a small amount of live traffic.
+Do one full IPSec tunnel bring-up (site-to-site) and one NAT64 test (v6-only client → IPv4 internet).
+Take the UI for a spin with the new template add/delete/reorder flows and capture rules.
+Fill in any remaining TODOs in the deployment guides from that experience.
+
+Want me to dive deeper on anything specific?
+
+Review a particular schema or rule set?
+Help tighten the NAT64 reply path or add a new feature?
+Brainstorm v2.2 UI enhancements (drag-and-drop, bulk import, live capture view)?
+Look at performance or Windows-specific optimizations?
+Compare this to something like OPNsense/pfSense from an architectural standpoint?
